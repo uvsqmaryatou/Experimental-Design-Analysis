@@ -78,31 +78,24 @@ var loadData = function(svgEl){
 
 
 var startExperiment = function(event) {
-
   event.preventDefault();
 
   shuffleTrialsForParticipant();
 
-  // set the trial counter to the first trial to run
-  // ctx.participant, ctx.startBlock and ctx.startTrial contain values selected in combo boxes
-
-  console.log("ctx.startTrial: "+ctx.startTrial);
-
+  // Find the FIRST trial for this participant
   for(var i = 0; i < ctx.trials.length; i++) {
     if(ctx.trials[i][ctx.participantIndex] === ctx.participant) {
-      if(parseInt(ctx.trials[i][ctx.blockIndex]) == ctx.startBlock) {
-        if(parseInt(ctx.trials[i][ctx.trialIndex]) == ctx.startTrial) {
-          ctx.cpt = i - 1;
-
-          // start first trial
-          console.log("start experiment at "+ctx.cpt);
-          nextTrial();
-          return;
-        }
-      }
+      ctx.cpt = i - 1; // Set counter to just before first trial
+      console.log("Starting experiment for", ctx.participant, "at index", i, "total trials:", countParticipantTrials());
+      nextTrial();
+      return;
     }
   }
+}
 
+// Helper function to count participant's trials
+function countParticipantTrials() {
+  return ctx.trials.filter(t => t[ctx.participantIndex] === ctx.participant).length;
 }
 
 var nextTrial = function() {
@@ -329,23 +322,27 @@ var displayShapes = function() {
 };
 
 function shuffleTrialsForParticipant() {
-
   var participant = ctx.participant;
-
-  // extract trials for this participant
+  
+  // Extract this participant's trials
   var participantTrials = ctx.trials.filter(function(t) {
     return t[ctx.participantIndex] === participant;
   });
-
-  // shuffle them
-  shuffle(participantTrials);
-
-  // replace original order
+  
+  // Extract all other trials
   var otherTrials = ctx.trials.filter(function(t) {
     return t[ctx.participantIndex] !== participant;
   });
-
-  ctx.trials = participantTrials.concat(otherTrials);
+  
+  // Shuffle participant trials
+  shuffle(participantTrials);
+  
+  // Combine in original order: participant trials first, then others
+  // (or maintain some other consistent order)
+  ctx.trials = [...participantTrials, ...otherTrials];
+  
+  // Debug: verify count
+  console.log("Participant", participant, "has", participantTrials.length, "trials");
 }
 
 
